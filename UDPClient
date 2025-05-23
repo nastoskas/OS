@@ -1,0 +1,44 @@
+import java.io.IOException;
+import java.net.*;
+
+public class UDPClient extends Thread{
+    private int port;
+    private String msg;
+    private byte[] buffer;
+    private DatagramSocket socket;
+    private InetAddress address;
+
+    public UDPClient(int port, String msg) {
+        this.port = port;
+        this.msg = msg;
+        try {
+            this.address = InetAddress.getByName("194.149.135.49");
+            this.socket = new DatagramSocket();
+        } catch (UnknownHostException | SocketException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void run() {
+        buffer = msg.getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
+
+        try {
+            socket.send(packet);
+            byte[] newBuffer = new byte[256];
+            DatagramPacket receivedPacket = new DatagramPacket(newBuffer,newBuffer.length,address,port);
+            socket.receive(receivedPacket);
+
+            System.out.println(new String(receivedPacket.getData(), 0, receivedPacket.getLength()));
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void main(String[] args) {
+        UDPClient udpClient = new UDPClient(9753, "236001");
+        udpClient.start();
+    }
+}
